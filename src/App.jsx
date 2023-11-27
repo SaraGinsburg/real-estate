@@ -4,6 +4,7 @@ import SignIn from './pages/Signin';
 import SignUp from './pages/SignUp';
 import Profile from './pages/Profile';
 import About from './pages/about';
+//checking git access
 
 export default function App() {
   return (
