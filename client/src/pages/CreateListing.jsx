@@ -5,14 +5,33 @@ import {
   uploadBytesResumable,
 } from 'firebase/storage';
 import { useState } from 'react';
+import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 
 const CreateListing = () => {
+  const { currentUser } = useSelector((state) => state.user);
+  const navigate = useNavigate();
   const [files, setFiles] = useState([]);
   const [formData, setFormData] = useState({
     imageUrls: [],
+    name: '',
+    description: '',
+    address: '',
+    regularPrice: 50,
+    discountedPrice: 0,
+    bathrooms: 1,
+    bedrooms: 1,
+    furnished: false,
+    parking: false,
+    type: 'rent',
+    offer: false,
   });
   const [imageUploadError, setImageUploadError] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  console.log(formData);
 
   const handleImageSubmit = (e) => {
     if (files.length > 0 && files.length + formData.imageUrls.length < 7) {
@@ -72,12 +91,77 @@ const CreateListing = () => {
       imageUrls: formData.imageUrls.filter((_, i) => i !== index),
     });
   };
+
+  const handleChange = (e) => {
+    if (e.target.id === 'sale' || e.target.id === 'rent') {
+      setFormData({ ...formData, type: e.target.id });
+    }
+
+    if (
+      e.target.id === 'furnished' ||
+      e.target.id === 'offer' ||
+      e.target.id === 'parking'
+    ) {
+      setFormData({
+        ...formData,
+        [e.target.id]: e.target.checked,
+      });
+    }
+    // if (
+    //   e.target.id === 'bathrooms' ||
+    //   e.target.id === 'bedrooms' ||
+    //   e.target.id === 'discountedPrice' ||
+    //   e.target.id === 'regularPrice'
+    if (
+      e.target.type === 'text' ||
+      e.target.type === 'number' ||
+      e.target.type === 'textarea'
+    ) {
+      setFormData({ ...formData, [e.target.id]: e.target.value });
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (formData.imageUrls.length < 1) {
+        return setError('You must upload at least one image!');
+      }
+      if (formData.regularPrice < formData.discountedPrice) {
+        return setError('Discounted Price should be lower than Regular Price');
+      }
+      setLoading(true);
+      setError(false);
+      setError(false);
+      const res = await fetch('/api/listing/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...formData,
+          userRef: currentUser._id,
+        }),
+      });
+      const data = await res.json();
+      setLoading(false);
+      if (data.success === false) {
+        setError(data.message);
+      }
+      navigate(`/listing/${data._id}`);
+    } catch (error) {
+      setError(error.message);
+      setLoading(false);
+    }
+  };
   return (
     <main className='p-3 max-w-4xl mx-auto'>
       <h1 className='text-center my-7 text-3xl font-semibold text-slate-500'>
         Create a Listing
       </h1>
-      <form className='flex flex-col sm:flex-row gap-8 md:justify-between'>
+      <form
+        onSubmit={handleSubmit}
+        className='flex flex-col sm:flex-row gap-8 md:justify-between'>
         <div className='flex flex-col  gap-3 flex-1'>
           <input
             type='text'
@@ -87,6 +171,8 @@ const CreateListing = () => {
             maxLength='62'
             minLength='10'
             required
+            onChange={handleChange}
+            value={formData.name}
           />
           <textarea
             type='text'
@@ -94,6 +180,8 @@ const CreateListing = () => {
             className='border p-3 rounded-lg'
             id='description'
             required
+            onChange={handleChange}
+            value={formData.description}
           />
           <input
             type='text'
@@ -101,6 +189,8 @@ const CreateListing = () => {
             className='border p-3 rounded-lg'
             id='address'
             required
+            onChange={handleChange}
+            value={formData.address}
           />
           <div className='flex gap-8 flex-wrap p-8 items-center justify-center'>
             <div className='flex gap-2'>
@@ -108,6 +198,8 @@ const CreateListing = () => {
                 type='checkbox'
                 id='sale'
                 className='accent-customGreen w-4'
+                onChange={handleChange}
+                checked={formData.type === 'sale'}
               />
               <span className='text-slate-500'>Sell</span>
             </div>
@@ -116,6 +208,8 @@ const CreateListing = () => {
                 type='checkbox'
                 id='rent'
                 className='accent-customGreen w-4'
+                onChange={handleChange}
+                checked={formData.type === 'rent'}
               />
               <span className='text-slate-500'>Rent</span>
             </div>
@@ -124,6 +218,8 @@ const CreateListing = () => {
                 type='checkbox'
                 id='parking'
                 className='accent-customGreen w-4'
+                onChange={handleChange}
+                checked={formData.parking}
               />
               <span className='text-slate-500'>Parking spot</span>
             </div>
@@ -132,6 +228,8 @@ const CreateListing = () => {
                 type='checkbox'
                 id='furnished'
                 className='accent-customGreen w-4'
+                onChange={handleChange}
+                checked={formData.furnished}
               />
               <span className='text-slate-500'>Furnished</span>
             </div>
@@ -140,6 +238,8 @@ const CreateListing = () => {
                 type='checkbox'
                 id='offer'
                 className='accent-customGreen w-4'
+                onChange={handleChange}
+                checked={formData.offer}
               />
               <span className='text-slate-500'>Offer</span>
             </div>
@@ -151,9 +251,10 @@ const CreateListing = () => {
                 id='bedrooms'
                 min='1'
                 max='10'
-                value='1'
                 required
                 className='border p-3 border-slate-300 rounded-lg hover:border-slate-500 focus:border-slate-900 focus:outline-none focus:ring-0'
+                onChange={handleChange}
+                value={formData.bedrooms}
               />
               <span className='text-slate-500'>Beds</span>
             </div>
@@ -161,11 +262,12 @@ const CreateListing = () => {
               <input
                 type='number'
                 id='bathrooms'
-                value='1'
                 min='1'
                 max='10'
                 required
                 className='border p-3 border-slate-300 rounded-lg hover:border-slate-500 focus:border-slate-900 focus:outline-none focus:ring-0'
+                onChange={handleChange}
+                value={formData.bathrooms}
               />
               <span className='text-slate-500'>Baths</span>
             </div>
@@ -173,12 +275,13 @@ const CreateListing = () => {
               <input
                 type='number'
                 id='regularPrice'
-                min='0'
+                min='50'
                 max='15000'
-                // value='0'
                 step='50'
                 required
                 className='border p-3 border-slate-300 rounded-lg hover:border-slate-500 focus:border-slate-900 focus:outline-none focus:ring-0'
+                onChange={handleChange}
+                value={formData.regularPrice}
               />
               <div className='flex flex-col'>
                 <span className='text-slate-500'>Regular price </span>
@@ -187,24 +290,27 @@ const CreateListing = () => {
                 </span>
               </div>
             </div>
-            <div className='flex gap-2 items-center'>
-              <input
-                type='number'
-                id='discountedPrice'
-                min='0'
-                max='15000'
-                // value='0'
-                step='50'
-                required
-                className='border p-3 border-slate-300 rounded-lg hover:border-slate-500 focus:border-slate-900 focus:outline-none focus:ring-0'
-              />
-              <div className='flex flex-col'>
-                <span className='text-slate-500'>Discounted price </span>
-                <span className='text-slate-500 text-center text-xs'>
-                  ($/Month)
-                </span>
+            {formData.offer && (
+              <div className='flex gap-2 items-center'>
+                <input
+                  type='number'
+                  id='discountedPrice'
+                  min='0'
+                  max='15000'
+                  step='5'
+                  required
+                  className='border p-3 border-slate-300 rounded-lg hover:border-slate-500 focus:border-slate-900 focus:outline-none focus:ring-0'
+                  onChange={handleChange}
+                  value={formData.discountedPrice}
+                />
+                <div className='flex flex-col'>
+                  <span className='text-slate-500'>Discounted price </span>
+                  <span className='text-slate-500 text-center text-xs'>
+                    ($/Month)
+                  </span>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
         <div className='flex flex-col flex-1 gap-4'>
@@ -254,9 +360,12 @@ const CreateListing = () => {
                 </button>
               </div>
             ))}
-          <button className='rounded-lg p-3 bg-slate-500 text-white uppercase hover:opacity-80 disabled:opacity-50'>
-            Create Listing
+          <button
+            disabled={loading || uploading}
+            className='rounded-lg p-3 bg-slate-500 text-white uppercase hover:opacity-80 disabled:opacity-50'>
+            {loading ? 'Creating...' : 'Create listing'}
           </button>
+          {error && <p className='text-orange-500 text-sm'>{error}</p>}
         </div>
       </form>
     </main>
