@@ -159,6 +159,23 @@ export default function Profile() {
     }
   };
 
+  const handleUpdateListing = async (listingId) => {
+    try {
+      const res = await fetch(`/api/listing/update/${listingId}`, {
+        method: 'POST',
+      });
+      const data = await res.json();
+      if (data.success === false) {
+        console.log(data.message);
+        return;
+      }
+      setUserListings((prev) => prev.filter());
+    } catch (error) {
+      console.log(error.message);
+      next(error);
+    }
+  };
+
   return (
     <div className='p-3 max-w-lg mx-auto'>
       <h1 className='text-3xl font-semibold text-center my-7 text-slate-500'>
@@ -278,9 +295,13 @@ export default function Profile() {
                     className='text-orange-400 uppercase text-sm'>
                     delete
                   </button>
-                  <button className='text-customGreen uppercase text-sm'>
-                    edit
-                  </button>
+                  <Link to={`/update-listing/${listing._id}`}>
+                    <button
+                      onClick={() => handleUpdateListing(listing._id)}
+                      className='text-customGreen uppercase text-sm'>
+                      edit
+                    </button>
+                  </Link>
                 </div>
               </div>
             ))}

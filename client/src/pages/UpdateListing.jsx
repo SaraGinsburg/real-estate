@@ -4,13 +4,15 @@ import {
   ref,
   uploadBytesResumable,
 } from 'firebase/storage';
-import { useState } from 'react';
+import { app } from '../firebase';
+import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 const UpdateListing = () => {
   const { currentUser } = useSelector((state) => state.user);
   const navigate = useNavigate();
+  const params = useParams();
   const [files, setFiles] = useState([]);
   const [formData, setFormData] = useState({
     imageUrls: [],
@@ -31,13 +33,28 @@ const UpdateListing = () => {
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  console.log(formData);
+  useEffect(() => {
+    const fetchListing = async () => {
+      const listingId = params.listingId;
+      console.log('listingId', listingId);
+      const res = await fetch(`/api/listing/get/${listingId}`);
+
+      const data = await res.json();
+      if (data.success === false) {
+        console.log(data.message);
+        return;
+      }
+      setFormData(data);
+    };
+    fetchListing();
+  }, []);
 
   const handleImageSubmit = (e) => {
     if (files.length > 0 && files.length + formData.imageUrls.length < 7) {
       setUploading(true);
       setImageUploadError(false);
       const promises = [];
+
       for (let i = 0; i < files.length; i++) {
         promises.push(storeImage(files[i]));
       }
@@ -62,7 +79,7 @@ const UpdateListing = () => {
 
   const storeImage = async (file) => {
     return new Promise((resolve, reject) => {
-      const storage = getStorage();
+      const storage = getStorage(app);
       const fileName = new Date().getTime() + file.name;
       const storageRef = ref(storage, fileName);
       const uploadTask = uploadBytesResumable(storageRef, file);
@@ -107,6 +124,11 @@ const UpdateListing = () => {
         [e.target.id]: e.target.checked,
       });
     }
+    // if (
+    //   e.target.id === 'bathrooms' ||
+    //   e.target.id === 'bedrooms' ||
+    //   e.target.id === 'discountedPrice' ||
+    //   e.target.id === 'regularPrice'
     if (
       e.target.type === 'text' ||
       e.target.type === 'number' ||
@@ -128,7 +150,7 @@ const UpdateListing = () => {
       setLoading(true);
       setError(false);
       setError(false);
-      const res = await fetch('/api/listing/create', {
+      const res = await fetch(`/api/listing/update/${params.listingId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -152,7 +174,7 @@ const UpdateListing = () => {
   return (
     <main className='p-3 max-w-4xl mx-auto'>
       <h1 className='text-center my-7 text-3xl font-semibold text-slate-500'>
-        Create a Listing
+        Update a Listing
       </h1>
       <form
         onSubmit={handleSubmit}
@@ -358,7 +380,7 @@ const UpdateListing = () => {
           <button
             disabled={loading || uploading}
             className='rounded-lg p-3 bg-slate-500 text-white uppercase hover:opacity-80 disabled:opacity-50'>
-            {loading ? 'Creating...' : 'Create listing'}
+            {loading ? 'Updating...' : 'Update listing'}
           </button>
           {error && <p className='text-orange-500 text-sm'>{error}</p>}
         </div>
