@@ -1,5 +1,6 @@
 import Listing from '../models/listing.model.js';
 import { errorHandler } from '../utils/error.js';
+import mongoose from 'mongoose';
 
 export const createListing = async (req, res, next) => {
   try {
@@ -22,6 +23,42 @@ export const deleteListing = async (req, res, next) => {
   try {
     await Listing.findByIdAndDelete(req.params.id);
     res.status(200).json('Listing has been deleted');
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateListing = async (req, res, next) => {
+  try {
+    const listing = await Listing.findById(req.params.id);
+
+    if (!listing) {
+      console.log('Listing not found');
+      return next(errorHandler(404, 'Listing not found'));
+    }
+
+    if (listing.userRef !== req.user.id) {
+      console.log('Unauthorized user');
+      return next(errorHandler(401, 'You can update your own listing, only'));
+    }
+
+    const isValidObjectId = mongoose.Types.ObjectId.isValid(req.params.id);
+    if (!isValidObjectId) {
+      console.log('invalid objectId in the update request');
+      return next(errorHandler(400, 'Invalid ObjectId in the update request'));
+    }
+    try {
+      const updatedListing = await Listing.findByIdAndUpdate(
+        req.params.id,
+        req.body,
+        { new: true }
+      );
+      console.log('listing updated successfully');
+      res.status(200).json(updatedListing);
+    } catch (error) {
+      console.error('Error updating listing:', error);
+      next(error);
+    }
   } catch (error) {
     next(error);
   }
