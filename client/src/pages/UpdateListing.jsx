@@ -32,10 +32,10 @@ const UpdateListing = () => {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
+  const listingId = params.listingId;
 
   useEffect(() => {
     const fetchListing = async () => {
-      const listingId = params.listingId;
       console.log('listingId', listingId);
       const res = await fetch(`/api/listing/get/${listingId}`);
 
