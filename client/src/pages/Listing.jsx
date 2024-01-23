@@ -4,9 +4,11 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import SwiperCore from 'swiper';
 import { Navigation } from 'swiper/modules';
 import 'swiper/css/bundle';
+import { FaShare } from 'react-icons/fa';
 
 const Listing = () => {
   SwiperCore.use([Navigation]);
+
   const [listing, setListing] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
@@ -47,7 +49,12 @@ const Listing = () => {
       )}
       {listing && !error && !loading && (
         <div>
-          <Swiper navigation>
+          <Swiper
+            navigation
+            style={{
+              '--swiper-pagination-color': '#809e88',
+              '--swiper-navigation-color': '#809e88',
+            }}>
             {listing.imageUrls.map((url) => (
               <SwiperSlide key={url}>
                 <div
@@ -59,6 +66,11 @@ const Listing = () => {
               </SwiperSlide>
             ))}
           </Swiper>
+          <div
+            className='fixed top-[13%] right-[3%] z-10 border rounded-full w-12 h-12 flex justify-center items-center bg-slate-300
+          '>
+            <FaShare className='text-customGreen' />
+          </div>
         </div>
       )}
     </main>
