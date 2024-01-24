@@ -4,7 +4,14 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import SwiperCore from 'swiper';
 import { Navigation } from 'swiper/modules';
 import 'swiper/css/bundle';
-import { FaShare } from 'react-icons/fa';
+import {
+  FaBath,
+  FaBed,
+  FaChair,
+  FaMapMarkerAlt,
+  FaParking,
+  FaShare,
+} from 'react-icons/fa';
 
 const Listing = () => {
   SwiperCore.use([Navigation]);
@@ -12,6 +19,7 @@ const Listing = () => {
   const [listing, setListing] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
   const params = useParams();
 
   useEffect(() => {
@@ -43,7 +51,7 @@ const Listing = () => {
         <p className='text-center my-7 text-2xl text-slate-600'>loading...</p>
       )}
       {error && (
-        <p className='text-center my-7 text-orange-600 text-2xl'>
+        <p className='text-center my-7 text-orange-500 text-2xl'>
           something went wrong!
         </p>
       )}
@@ -67,9 +75,75 @@ const Listing = () => {
             ))}
           </Swiper>
           <div
-            className='fixed top-[13%] right-[3%] z-10 border rounded-full w-12 h-12 flex justify-center items-center bg-slate-300
+            className='fixed top-[13%] right-[3%] z-10 border rounded-full w-12 h-12 flex justify-center items-center bg-slate-300 cursor-pointer
           '>
-            <FaShare className='text-customGreen' />
+            <FaShare
+              className='text-customGreen'
+              onClick={() => {
+                navigator.clipboard.writeText(window.location.href); //writing the current URL (window.location.href) to the clipboard.
+                setLinkCopied(true);
+                setTimeout(() => {
+                  setLinkCopied(false);
+                }, 2000);
+              }}
+            />
+          </div>
+          {linkCopied && (
+            <p className='fixed top-[20%] right-[1%] z-10 border rounded-md p-1 bg-slate-300 text-customGreen'>
+              Link copied!
+            </p>
+          )}
+          <div className='flex flex-col max-w-4xl mx-auto p-3 my-7 gap-4'>
+            <p className='text-2xl font-semibold text-slate-600'>
+              {listing.name} - ${' '}
+              {listing.offer
+                ? listing.discountedPrice.toLocaleString('en-US')
+                : listing.regularPrice.toLocaleString('en-US')}
+              {listing.type === 'rent' && ' / month'}
+            </p>
+            <p className='flex items-center gap-2 mt-4 text-slate-600 text-sm '>
+              <FaMapMarkerAlt className=' text-customGreen' />
+              {listing.address}
+            </p>
+            <div className='flex gap-4'>
+              <p className='bg-orange-400 text-slate-200 w-full max-w-[200px] text-center rounded-md p-1'>
+                {listing.type === 'rent' ? 'For Rent' : 'For Sale'}
+              </p>
+              {listing.offer && (
+                <p className='bg-customGreen text-slate-200 w-full max-w-[200px] text-center rounded-md p-1'>
+                  ${+listing.regularPrice - +listing.discountedPrice} Discount
+                </p>
+              )}
+            </div>
+            <p className='text-slate-800'>
+              <span className='font-semibold text-slate-900'>
+                Description -{' '}
+              </span>
+              {listing.description}
+            </p>
+            <ul className='text-customDarkGreen font-semibold text-sm flex flex-wrap items-center gap-4 sm:gap-6'>
+              <li className='flex gap-1 items-center whitespace-nowrap '>
+                <FaBed className='text-lg text-customGreen' />
+
+                {listing.bedrooms > 1
+                  ? `${listing.bedrooms} beds`
+                  : `${listing.bedrooms} bed`}
+              </li>
+              <li className='flex gap-1 items-center whitespace-nowrap '>
+                <FaBath className='text-lg text-customGreen' />
+                {listing.bathrooms > 1
+                  ? `${listing.bedrooms} baths`
+                  : `${listing.bedrooms} bath`}
+              </li>
+              <li className='flex gap-1 items-center whitespace-nowrap '>
+                <FaParking className='text-lg text-customGreen' />
+                {listing.parking ? 'Parking spot' : 'No Parking'}
+              </li>
+              <li className='flex gap-1 items-center whitespace-nowrap '>
+                <FaChair className='text-lg text-customGreen' />
+                {listing.furnished ? 'Furnished' : 'Unfurnished'}
+              </li>
+            </ul>
           </div>
         </div>
       )}

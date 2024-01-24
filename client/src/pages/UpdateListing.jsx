@@ -267,7 +267,7 @@ const UpdateListing = () => {
                 type='number'
                 id='bedrooms'
                 min='1'
-                max='10'
+                max='20'
                 required
                 className='border p-3 border-slate-300 rounded-lg hover:border-slate-500 focus:border-slate-900 focus:outline-none focus:ring-0'
                 onChange={handleChange}
@@ -293,7 +293,7 @@ const UpdateListing = () => {
                 type='number'
                 id='regularPrice'
                 min='50'
-                max='15000'
+                max='15000000'
                 step='50'
                 required
                 className='border p-3 border-slate-300 rounded-lg hover:border-slate-500 focus:border-slate-900 focus:outline-none focus:ring-0'
@@ -302,9 +302,11 @@ const UpdateListing = () => {
               />
               <div className='flex flex-col'>
                 <span className='text-slate-500'>Regular price </span>
-                <span className='text-slate-500 text-center text-xs'>
-                  ($/Month)
-                </span>
+                {formData.type === 'rent' && (
+                  <span className='text-slate-500 text-center text-xs'>
+                    ($/Month)
+                  </span>
+                )}
               </div>
             </div>
             {formData.offer && (
@@ -313,7 +315,7 @@ const UpdateListing = () => {
                   type='number'
                   id='discountedPrice'
                   min='0'
-                  max='15000'
+                  max='15000000'
                   step='5'
                   required
                   className='border p-3 border-slate-300 rounded-lg hover:border-slate-500 focus:border-slate-900 focus:outline-none focus:ring-0'
@@ -322,9 +324,11 @@ const UpdateListing = () => {
                 />
                 <div className='flex flex-col'>
                   <span className='text-slate-500'>Discounted price </span>
-                  <span className='text-slate-500 text-center text-xs'>
-                    ($/Month)
-                  </span>
+                  {formData.type === 'rent' && (
+                    <span className='text-slate-500 text-center text-xs'>
+                      ($/Month)
+                    </span>
+                  )}
                 </div>
               </div>
             )}

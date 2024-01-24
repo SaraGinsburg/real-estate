@@ -6,6 +6,7 @@ export default {
       colors: {
         // Add or modify colors here
         customGreen: '#809e88', // Example RGB value in hex
+        customDarkGreen: '#708776',
       },
       // textColor: {
       //   customGreen: '#ffffff', // White text color for customGreen background
