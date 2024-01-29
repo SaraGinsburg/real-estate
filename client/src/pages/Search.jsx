@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import ListingItem from '../components/ListingItem';
 
 const Search = () => {
   const navigate = useNavigate();
@@ -14,8 +15,8 @@ const Search = () => {
   });
   const [loading, setLoading] = useState(false);
   const [listings, setListings] = useState([]);
-  console.log('sidebarData', sidebarData);
-  console.log('listings', listings);
+  // console.log('sidebarData', sidebarData);
+  // console.log('listings', listings);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
@@ -219,10 +220,25 @@ const Search = () => {
           </button>
         </form>
       </div>
-      <div className=''>
+      <div className='flex-1'>
         <h1 className='text-3xl font-semibold text-slate-500 border-b p-3 mt-5'>
           Listing results
         </h1>
+        <div className='p-7 flex flex-wrap gap-4'>
+          {!loading && listings.length === 0 && (
+            <p className='text-xl text-slate-500'>No listing found!</p>
+          )}
+          {loading && (
+            <p className='text-xl text-slate-500 text-center w-full'>
+              loading...
+            </p>
+          )}
+          {!loading &&
+            listings &&
+            listings.map((listing) => (
+              <ListingItem key={listing._id} listing={listing} />
+            ))}
+        </div>
       </div>
     </div>
   );
